@@ -228,7 +228,7 @@ function renderShell() {
     '<header class="topbar">' +
     (backAct ? backBtn(backAct) : '') +
     '<h1>' + esc(headerTitle) + '</h1>' +
-    '<span class="slogan">inspirasay · 将转瞬即逝的灵感随时记录下来</span>' +
+    '<span class="slogan">inspirasay · 将转瞬即逝的灵感随时随地记录下来</span>' +
     '</header>' +
     '<main class="page">' + pageHTML + '</main>' +
     (showFAB ? '<button class="fab" data-act="fab-add" aria-label="新增">' + IC.plus + '</button>' : '') +
