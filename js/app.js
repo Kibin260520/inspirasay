@@ -27,6 +27,7 @@ const TABS = [
 
 const state = {
   tab: 'inspiration',
+  writeSec: null,                   // 开始写：当前分块（words/frags/novels），null=分块首页
   novelId: null, chapterId: null,   // 开始写：小说 → 章节
   inspCat: null, inspId: null,      // 灵感：分类 → 条目详情
   fragId: null,                     // 片段（位于开始写模块内）：详情
@@ -130,7 +131,7 @@ async function enterApp(user, repo, token) {
   if (Store.metaSha === null) {
     throw new Error('仓库「' + repo + '」中未找到应用数据，请登录数据仓库（如 inspirasay-data）');
   }
-  Object.assign(state, { tab: 'inspiration', novelId: null, chapterId: null, inspCat: null, inspId: null, fragId: null, wordId: null, graphId: null, gLinkMode: false, gLinkFrom: null, photoPage: 1, dirty: false });
+  Object.assign(state, { tab: 'inspiration', writeSec: null, novelId: null, chapterId: null, inspCat: null, inspId: null, fragId: null, wordId: null, graphId: null, gLinkMode: false, gLinkFrom: null, photoPage: 1, dirty: false });
   renderShell();
 }
 
@@ -202,6 +203,15 @@ function renderShell() {
         const novel = Store.novelById(state.novelId);
         if (!novel) { state.novelId = null; }
         else { headerTitle = novel.title; pageHTML = pageChapters(novel); showFAB = true; backAct = 'back-novels'; }
+      }
+      if (!pageHTML && state.writeSec === 'words') {
+        headerTitle = '短词'; pageHTML = pageWords(); showFAB = true; backAct = 'back-write-home';
+      }
+      if (!pageHTML && state.writeSec === 'frags') {
+        headerTitle = '片段'; pageHTML = pageFragList(); showFAB = true; backAct = 'back-write-home';
+      }
+      if (!pageHTML && state.writeSec === 'novels') {
+        headerTitle = '小说'; pageHTML = pageNovels(); showFAB = true; backAct = 'back-write-home';
       }
       if (!pageHTML) { headerTitle = '开始写'; pageHTML = pageWriteHome(); }
       break;
@@ -290,28 +300,24 @@ function renderInspDetail() {
   updateCrumb();
 }
 
-/* ---------- 开始写：首页（小说区 + 片段区） ---------- */
+/* ---------- 开始写：分块首页（点进分块后才新增/浏览条目） ---------- */
 function pageWriteHome() {
-  const novelRows = Store.novels.map(n => {
-    const chs = n.chapters || [];
-    const words = chs.reduce((s, c) => s + (c.content || '').length, 0);
-    return '<div class="row" data-act="open-novel" data-id="' + n.id + '">' +
-      '<span class="row-icon ri-book">📖</span>' +
-      '<div class="row-info"><b>' + esc(n.title) + '</b>' +
-      '<span>' + chs.length + ' 章 · ' + words + ' 字 · ' + fmtDate(n.updatedAt) + '</span></div>' +
-      IC.chev + '</div>';
-  }).join('');
-  const fragRows = Store.fragments.slice()
-    .sort((a, b) => (a.createdAt || 0) - (b.createdAt || 0))
-    .map(f =>
-    '<div class="row" data-act="open-frag" data-id="' + f.id + '">' +
-    '<span class="row-icon ri-frag">' + IC.fragment + '</span>' +
-    '<div class="row-info"><b>' + esc(f.title) + '</b>' +
-    '<span>' + esc((f.content || '').replace(/\s+/g, ' ').slice(0, 40) || '（暂无内容）') + ' · ' + fmtDate(f.updatedAt) + '</span></div>' +
-    '<button class="row-del" data-act="del-frag" data-id="' + f.id + '">' + IC.trash + '</button>' +
-    IC.chev + '</div>').join('');
+  const blocks = [
+    { id: 'words',  icon: '✒️', name: '短词', desc: '好词妙句 · 称谓 · 术语', count: Store.words.length, cls: 'wb-word' },
+    { id: 'frags',  icon: '📝', name: '片段', desc: '随手记下的段落与句子',   count: Store.fragments.length, cls: 'wb-frag' },
+    { id: 'novels', icon: '📖', name: '小说', desc: '选一本书，继续你的故事', count: Store.novels.length, cls: 'wb-book' }
+  ];
+  return '<div class="sec-grid">' + blocks.map(b =>
+    '<div class="sec-card ' + b.cls + '" data-act="open-wsec" data-sec="' + b.id + '">' +
+    '<span class="sec-ico">' + b.icon + '</span>' +
+    '<div class="sec-info"><b>' + b.name + '</b><span>' + esc(b.desc) + '</span></div>' +
+    '<span class="sec-count">' + b.count + '</span>' +
+    IC.chev + '</div>').join('') + '</div>';
+}
 
-  const wordRows = Store.words.slice()
+/* ---------- 开始写：短词列表 ---------- */
+function pageWords() {
+  const rows = Store.words.slice()
     .sort((a, b) => (a.createdAt || 0) - (b.createdAt || 0))
     .map(w =>
     '<div class="row" data-act="open-word" data-id="' + w.id + '">' +
@@ -320,13 +326,41 @@ function pageWriteHome() {
     '<span>' + esc((w.content || '').replace(/\s+/g, ' ').slice(0, 40) || '（暂无备注）') + ' · ' + fmtDate(w.updatedAt) + '</span></div>' +
     '<button class="row-del" data-act="del-word" data-id="' + w.id + '">' + IC.trash + '</button>' +
     IC.chev + '</div>').join('');
+  return Store.words.length
+    ? '<div class="list">' + rows + '</div>'
+    : emptyBox('还没有短词', '点击右下角 +，收集第一个好词');
+}
 
-  return '<div class="section-head"><b>✒️ 短词</b><button class="section-add" data-act="add-word">＋ 新建短词</button></div>' +
-    (Store.words.length ? '<div class="list">' + wordRows + '</div>' : '<p class="list-hint">收集好词、妙句、称谓、术语，写作时随手取用。</p>') +
-    '<div class="section-head"><b>📝 片段</b><button class="section-add" data-act="add-frag">＋ 新建片段</button></div>' +
-    (Store.fragments.length ? '<div class="list">' + fragRows + '</div>' : '<p class="list-hint">随手记下打动你的段落与句子，会出现在这里。</p>') +
-    '<div class="section-head"><b>📖 小说</b><button class="section-add" data-act="add-novel">＋ 新建小说</button></div>' +
-    (Store.novels.length ? '<div class="list">' + novelRows + '</div>' : '<p class="list-hint">还没有小说，点上方「＋ 新建小说」开始你的故事。</p>');
+/* ---------- 开始写：片段列表 ---------- */
+function pageFragList() {
+  const rows = Store.fragments.slice()
+    .sort((a, b) => (a.createdAt || 0) - (b.createdAt || 0))
+    .map(f =>
+    '<div class="row" data-act="open-frag" data-id="' + f.id + '">' +
+    '<span class="row-icon ri-frag">' + IC.fragment + '</span>' +
+    '<div class="row-info"><b>' + esc(f.title) + '</b>' +
+    '<span>' + esc((f.content || '').replace(/\s+/g, ' ').slice(0, 40) || '（暂无内容）') + ' · ' + fmtDate(f.updatedAt) + '</span></div>' +
+    '<button class="row-del" data-act="del-frag" data-id="' + f.id + '">' + IC.trash + '</button>' +
+    IC.chev + '</div>').join('');
+  return Store.fragments.length
+    ? '<div class="list">' + rows + '</div>'
+    : emptyBox('还没有片段', '点击右下角 +，保存一段想留存的文字');
+}
+
+/* ---------- 开始写：小说列表 ---------- */
+function pageNovels() {
+  const rows = Store.novels.map(n => {
+    const chs = n.chapters || [];
+    const words = chs.reduce((s, c) => s + (c.content || '').length, 0);
+    return '<div class="row" data-act="open-novel" data-id="' + n.id + '">' +
+      '<span class="row-icon ri-book">📖</span>' +
+      '<div class="row-info"><b>' + esc(n.title) + '</b>' +
+      '<span>' + chs.length + ' 章 · ' + words + ' 字 · ' + fmtDate(n.updatedAt) + '</span></div>' +
+      IC.chev + '</div>';
+  }).join('');
+  return Store.novels.length
+    ? '<div class="list">' + rows + '</div>'
+    : emptyBox('书架还是空的', '点击右下角 +，创建第一本小说');
 }
 
 /* ---------- 片段：详情（全屏编辑） ---------- */
@@ -987,18 +1021,31 @@ document.addEventListener('click', async e => {
   switch (act) {
     case 'tab':
       state.tab = el.dataset.tab;
-      Object.assign(state, { novelId: null, chapterId: null, inspCat: null, inspId: null, fragId: null, wordId: null, graphId: null, gLinkMode: false, gLinkFrom: null, photoPage: 1, dirty: false });
+      Object.assign(state, { writeSec: null, novelId: null, chapterId: null, inspCat: null, inspId: null, fragId: null, wordId: null, graphId: null, gLinkMode: false, gLinkFrom: null, photoPage: 1, dirty: false });
       renderShell(); break;
 
     case 'fab-add':
       if (state.tab === 'inspiration') openInspModal(state.inspCat);
       else if (state.tab === 'graph') openGraphModal();
       else if (state.tab === 'photo') openPhotoModal();
-      else if (state.tab === 'write') { if (state.novelId && novel) openChapterModal(state.novelId); }
+      else if (state.tab === 'write') {
+        if (state.novelId && novel) openChapterModal(state.novelId);
+        else if (state.writeSec === 'words') openWordModal();
+        else if (state.writeSec === 'frags') openFragModal();
+        else if (state.writeSec === 'novels') openNovelModal();
+      }
       break;
 
     case 'add-novel': openNovelModal(); break;
     case 'add-frag': openFragModal(); break;
+
+    /* 开始写：分块导航 */
+    case 'open-wsec':
+      state.writeSec = el.dataset.sec;
+      renderShell(); break;
+    case 'back-write-home':
+      state.writeSec = null;
+      renderShell(); break;
 
     case 'close-modal': closeModal(); break;
     case 'close-mask': closeModal(); break;
@@ -1179,7 +1226,7 @@ document.addEventListener('click', async e => {
     case 'logout':
       if (await confirmDialog({ icon: '🚪', title: '退出登录', message: '本机保存的 Token 将被清除，下次登录需重新输入。', okText: '退出登录', okWarn: true })) {
         localStorage.removeItem(LS.user); localStorage.removeItem(LS.repo); localStorage.removeItem(LS.token);
-        Object.assign(state, { tab: 'inspiration', novelId: null, chapterId: null, inspCat: null, inspId: null, fragId: null, wordId: null, graphId: null, gLinkMode: false, gLinkFrom: null, photoPage: 1, dirty: false });
+        Object.assign(state, { tab: 'inspiration', writeSec: null, novelId: null, chapterId: null, inspCat: null, inspId: null, fragId: null, wordId: null, graphId: null, gLinkMode: false, gLinkFrom: null, photoPage: 1, dirty: false });
         renderLogin();
       }
       break;
