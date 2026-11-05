@@ -21,11 +21,11 @@ body {
 }
 input, textarea, select, button { font-family: inherit; color: inherit; }
 
-#app { max-width: 480px; margin: 0 auto; min-height: 100vh; background: var(--bg); box-shadow: 0 0 24px rgba(0,0,0,.06); }
+#app { max-width: 480px; margin: 0 auto; min-height: 100vh; min-height: 100svh; background: var(--bg); box-shadow: 0 0 24px rgba(0,0,0,.06); }
 
 /* ---------- 登录 ---------- */
 .login-wrap {
-  min-height: 100vh;
+  min-height: 100vh; min-height: 100svh;
   display: flex; align-items: center; justify-content: center;
   padding: 24px 20px;
   background: linear-gradient(160deg, #6c5ce7 0%, #8e7cf3 45%, #a29bfe 100%);
@@ -69,7 +69,7 @@ input, textarea, select, button { font-family: inherit; color: inherit; }
 .tip { font-size: 11px; color: var(--text-2); line-height: 1.7; margin-top: 16px; text-align: left; }
 
 /* ---------- 主框架 ---------- */
-.shell { min-height: 100vh; display: flex; flex-direction: column; position: relative; }
+.shell { min-height: 100vh; min-height: 100svh; display: flex; flex-direction: column; position: relative; }
 .topbar {
   position: sticky; top: 0; z-index: 20;
   height: 54px;
@@ -78,7 +78,17 @@ input, textarea, select, button { font-family: inherit; color: inherit; }
   background: rgba(255,255,255,.92); backdrop-filter: blur(10px);
   border-bottom: 1px solid var(--line);
 }
-.topbar h1 { font-size: 17px; font-weight: 700; }
+.topbar h1 { font-size: 17px; font-weight: 700; flex: none; }
+/* 顶栏右侧艺术字标语（淡色楷体） */
+.slogan {
+  flex: 1; min-width: 0; text-align: right;
+  font-family: "Kaiti SC", "STKaiti", "KaiTi", "楷体", "Noto Serif SC", serif;
+  font-style: italic; font-weight: 400;
+  font-size: 10.5px; letter-spacing: .5px;
+  color: #bcbcd0;
+  white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+  user-select: none; pointer-events: none;
+}
 .icon-btn {
   border: none; background: none; cursor: pointer;
   width: 36px; height: 36px;
@@ -172,7 +182,7 @@ input, textarea, select, button { font-family: inherit; color: inherit; }
 .ch-del:active { color: var(--danger); }
 
 /* ---------- 章节编辑器 ---------- */
-.editor { display: flex; flex-direction: column; height: 100vh; background: #fdfdfb; }
+.editor { display: flex; flex-direction: column; height: 100vh; height: 100svh; background: #fdfdfb; }
 .editor-bar {
   display: flex; align-items: center; gap: 6px;
   padding: 8px 10px;
@@ -284,7 +294,7 @@ input, textarea, select, button { font-family: inherit; color: inherit; }
 .list-hint { font-size: 12px; color: var(--text-2); line-height: 1.8; margin-top: 14px; text-align: center; }
 
 /* ---------- 详情页（灵感/片段） ---------- */
-.detail { display: flex; flex-direction: column; height: 100vh; background: #fdfdfb; }
+.detail { display: flex; flex-direction: column; height: 100vh; height: 100svh; background: #fdfdfb; }
 .detail-body {
   flex: 1; overflow-y: auto;
   padding: 14px 16px calc(30px + env(safe-area-inset-bottom));
@@ -397,10 +407,10 @@ input, textarea, select, button { font-family: inherit; color: inherit; }
   background: #f0f0f5; cursor: pointer;
   break-inside: avoid; -webkit-column-break-inside: avoid;
   margin: 0 0 10px;
+  min-height: 80px; /* 图片加载前占位，防瀑布流重排 */
 }
 .ph-cell img {
-  width: 100%; height: auto; display: block;
-  min-height: 60px; background: #f0f0f5;
+  width: 100%; height: 100%; object-fit: cover; display: block;
 }
 .ph-cell:active { opacity: .85; }
 .ph-tag {
@@ -542,7 +552,7 @@ input, textarea, select, button { font-family: inherit; color: inherit; }
 .logout-btn:active { background: #fdf1f0; }
 
 /* ---------- 图谱编辑器 ---------- */
-.geditor { display: flex; flex-direction: column; height: 100vh; background: #fdfdfb; }
+.geditor { display: flex; flex-direction: column; height: 100vh; height: 100svh; background: #fdfdfb; }
 .g-title {
   flex: 1; min-width: 0;
   font-size: 16px; text-align: center; cursor: pointer;
@@ -598,7 +608,7 @@ input, textarea, select, button { font-family: inherit; color: inherit; }
 .empty p { font-size: 13px; color: var(--text-2); line-height: 1.7; }
 
 .loading {
-  min-height: 100vh;
+  min-height: 100vh; min-height: 100svh;
   display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 16px;
   color: var(--text-2); font-size: 14px;
 }

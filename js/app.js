@@ -228,6 +228,7 @@ function renderShell() {
     '<header class="topbar">' +
     (backAct ? backBtn(backAct) : '') +
     '<h1>' + esc(headerTitle) + '</h1>' +
+    '<span class="slogan">inspirasay · 将转瞬即逝的灵感随时记录下来</span>' +
     '</header>' +
     '<main class="page">' + pageHTML + '</main>' +
     (showFAB ? '<button class="fab" data-act="fab-add" aria-label="新增">' + IC.plus + '</button>' : '') +
@@ -711,7 +712,17 @@ async function hydratePhotos() {
     const p = Store.photoById(img.dataset.ph);
     if (!p) return;
     Store.photoBlob(p)
-      .then(blob => { img.src = URL.createObjectURL(blob); })
+      .then(async blob => {
+        const url = URL.createObjectURL(blob);
+        try {
+          /* 先解码量出原始宽高，给容器设定 aspect-ratio 占位后再显示，避免瀑布流列重排导致页面跳动 */
+          const bmp = await createImageBitmap(blob);
+          const cell = img.closest('.ph-cell') || img.parentElement;
+          if (cell && bmp.width && bmp.height) cell.style.aspectRatio = bmp.width + ' / ' + bmp.height;
+          bmp.close && bmp.close();
+        } catch (_) { /* 解码失败则直接显示 */ }
+        img.src = url;
+      })
       .catch(() => { img.alt = '图片加载失败'; });
   });
 }
