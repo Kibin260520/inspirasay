@@ -1,6 +1,6 @@
 /* 数据状态 + 与 GitHub 私有仓库同步
    数据仓库（Private，如 inspirasay-data）内数据结构：
-   xiaolingganshuo/meta.json            { inspirations: [...], fragments: [...], words: [...], photos: [...] }
+   xiaolingganshuo/meta.json            { inspirations: [...], fragments: [...], words: [...], tips: [...], photos: [...] }
    xiaolingganshuo/novels/{id}.json     { id, title, desc, updatedAt, chapters: [...] }
    xiaolingganshuo/graphs/{id}.json     { id, title, type, updatedAt, nodes: [{id,label,x,y,color}], edges: [{a,b}] }
    xiaolingganshuo/photos/{id}.jpg      照片本体（元数据存 meta.json 的 photos 数组）
@@ -17,6 +17,7 @@ const Store = {
   inspirations: [],
   fragments: [],
   words: [],
+  tips: [],
   novels: [],
   graphs: [],
   photos: [],
@@ -33,6 +34,7 @@ const Store = {
     this.inspirations = (meta.data && meta.data.inspirations) || [];
     this.fragments = (meta.data && meta.data.fragments) || [];
     this.words = (meta.data && meta.data.words) || [];
+    this.tips = (meta.data && meta.data.tips) || [];
     this.photos = (meta.data && meta.data.photos) || [];
 
     this.novels = [];
@@ -69,6 +71,7 @@ const Store = {
         inspirations: this.inspirations,
         fragments: this.fragments,
         words: this.words,
+        tips: this.tips,
         photos: this.photos
       },
       this.metaSha

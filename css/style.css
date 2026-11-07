@@ -284,6 +284,7 @@ input, textarea, select, button { font-family: inherit; color: inherit; }
 .ri-frag { background: #fdcb6e; color: #6b4e00 !important; }
 .ri-word { background: #00b8a9; color: #fff !important; font-size: 17px; }
 .ri-book { background: #0984e3; font-size: 19px; }
+.ri-tip { background: #e84393; color: #fff !important; font-size: 17px; }
 .row-index {
   width: 30px; height: 30px; flex-shrink: 0;
   border-radius: 50%;
@@ -388,6 +389,7 @@ input, textarea, select, button { font-family: inherit; color: inherit; }
 .wb-word .sec-ico { background: #d2f3e2; }
 .wb-frag .sec-ico { background: #ffedc2; }
 .wb-book .sec-ico { background: #e1dbfa; }
+.wb-tip .sec-ico { background: #ffd9e4; }
 /* 三分块卡片：各自的淡彩底色 */
 .wb-word.sec-card {
   background: linear-gradient(135deg, #eafbf2 0%, #dcf6e8 100%);
@@ -400,6 +402,10 @@ input, textarea, select, button { font-family: inherit; color: inherit; }
 .wb-book.sec-card {
   background: linear-gradient(135deg, #f0edff 0%, #e6e0fc 100%);
   border-color: #d5cdf6;
+}
+.wb-tip.sec-card {
+  background: linear-gradient(135deg, #fff0f5 0%, #ffe2eb 100%);
+  border-color: #f8cfdd;
 }
 .sec-info { flex: 1; min-width: 0; }
 .sec-info b { display: block; font-size: 16px; }

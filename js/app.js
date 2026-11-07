@@ -27,11 +27,12 @@ const TABS = [
 
 const state = {
   tab: 'inspiration',
-  writeSec: null,                   // 开始写：当前分块（words/frags/novels），null=分块首页
+  writeSec: null,                   // 开始写：当前分块（words/frags/novels/tips），null=分块首页
   novelId: null, chapterId: null,   // 开始写：小说 → 章节
   inspCat: null, inspId: null,      // 灵感：分类 → 条目详情
   fragId: null,                     // 片段（位于开始写模块内）：详情
   wordId: null,                     // 短词（位于开始写模块内）：详情
+  tipId: null,                      // 写作技巧（位于开始写模块内）：详情
   graphId: null,                    // 图谱：当前编辑的图谱
   gLinkMode: false, gLinkFrom: null,// 图谱：连线模式与连线起点
   photoPage: 1,                     // 照片墙：当前页码
@@ -131,7 +132,7 @@ async function enterApp(user, repo, token) {
   if (Store.metaSha === null) {
     throw new Error('仓库「' + repo + '」中未找到应用数据，请登录数据仓库（如 inspirasay-data）');
   }
-  Object.assign(state, { tab: 'inspiration', writeSec: null, novelId: null, chapterId: null, inspCat: null, inspId: null, fragId: null, wordId: null, graphId: null, gLinkMode: false, gLinkFrom: null, photoPage: 1, dirty: false });
+  Object.assign(state, { tab: 'inspiration', writeSec: null, novelId: null, chapterId: null, inspCat: null, inspId: null, fragId: null, wordId: null, tipId: null, graphId: null, gLinkMode: false, gLinkFrom: null, photoPage: 1, dirty: false });
   renderShell();
 }
 
@@ -181,6 +182,7 @@ function tabbarHTML() {
 function renderShell() {
   if (state.tab === 'write' && state.chapterId) { renderEditor(); return; }
   if (state.tab === 'write' && state.wordId) { renderWordDetail(); return; }
+  if (state.tab === 'write' && state.tipId) { renderTipDetail(); return; }
   if (state.tab === 'write' && state.fragId) { renderFragDetail(); return; }
   if (state.tab === 'inspiration' && state.inspId) { renderInspDetail(); return; }
   if (state.tab === 'graph' && state.graphId) { renderGraphEditor(); return; }
@@ -212,6 +214,9 @@ function renderShell() {
       }
       if (!pageHTML && state.writeSec === 'novels') {
         headerTitle = '小说'; pageHTML = pageNovels(); showFAB = true; backAct = 'back-write-home';
+      }
+      if (!pageHTML && state.writeSec === 'tips') {
+        headerTitle = '写作技巧'; pageHTML = pageTips(); showFAB = true; backAct = 'back-write-home';
       }
       if (!pageHTML) { headerTitle = '开始写'; pageHTML = pageWriteHome(); }
       break;
@@ -306,7 +311,8 @@ function pageWriteHome() {
   const blocks = [
     { id: 'words',  icon: '✒️', name: '短词', desc: '好词妙句 · 称谓 · 术语', count: Store.words.length, cls: 'wb-word' },
     { id: 'frags',  icon: '📝', name: '片段', desc: '随手记下的段落与句子',   count: Store.fragments.length, cls: 'wb-frag' },
-    { id: 'novels', icon: '📖', name: '小说', desc: '选一本书，继续你的故事', count: Store.novels.length, cls: 'wb-book' }
+    { id: 'novels', icon: '📖', name: '小说', desc: '选一本书，继续你的故事', count: Store.novels.length, cls: 'wb-book' },
+    { id: 'tips',   icon: '💡', name: '写作技巧', desc: '手法 · 套路 · 干货笔记', count: Store.tips.length, cls: 'wb-tip' }
   ];
   return '<div class="sec-grid">' + blocks.map(b =>
     '<div class="sec-card ' + b.cls + '" data-act="open-wsec" data-sec="' + b.id + '">' +
@@ -364,6 +370,22 @@ function pageNovels() {
     : emptyBox('书架还是空的', '点击右下角 +，创建第一本小说');
 }
 
+/* ---------- 开始写：写作技巧列表 ---------- */
+function pageTips() {
+  const rows = Store.tips.slice()
+    .sort((a, b) => (a.createdAt || 0) - (b.createdAt || 0))
+    .map(t =>
+    '<div class="row" data-act="open-tip" data-id="' + t.id + '">' +
+    '<span class="row-icon ri-tip">💡</span>' +
+    '<div class="row-info"><b>' + esc(t.title) + '</b>' +
+    '<span>' + esc((t.content || '').replace(/\s+/g, ' ').slice(0, 40) || '（暂无内容）') + ' · ' + fmtDate(t.updatedAt) + '</span></div>' +
+    '<button class="row-del" data-act="del-tip" data-id="' + t.id + '">' + IC.trash + '</button>' +
+    IC.chev + '</div>').join('');
+  return Store.tips.length
+    ? '<div class="list">' + rows + '</div>'
+    : emptyBox('还没有技巧笔记', '点击右下角 +，记下第一条写作技巧');
+}
+
 /* ---------- 片段：详情（全屏编辑） ---------- */
 function renderFragDetail() {
   const item = Store.fragments.find(x => x.id === state.fragId);
@@ -401,6 +423,28 @@ function renderWordDetail() {
     '<div class="edit-frame">' +
     '<input id="dt-title" class="frame-title" value="' + esc(item.title) + '" placeholder="词语">' +
     '<textarea id="dt-content" placeholder="释义、出处、用法示例…（可留空）">' + esc(item.content || '') + '</textarea>' +
+    '</div>' +
+    '<p class="detail-meta">更新于 ' + fmtDate(item.updatedAt) + ' · 保存后自动同步到你的 GitHub 仓库</p>' +
+    '</div></div>';
+  bindDirty(['dt-title', 'dt-content']);
+  updateCrumb();
+}
+
+/* ---------- 写作技巧：详情（全屏编辑） ---------- */
+function renderTipDetail() {
+  const item = Store.tips.find(x => x.id === state.tipId);
+  if (!item) { state.tipId = null; renderShell(); return; }
+  $app.innerHTML =
+    '<div class="detail">' +
+    '<div class="editor-bar">' +
+    backBtn('back-tips') +
+    '<span class="crumb" id="dt-crumb" data-cat="写作技巧"></span>' +
+    '<button class="save-btn off" data-act="save-tip" disabled>保存</button>' +
+    '</div>' +
+    '<div class="detail-body">' +
+    '<div class="edit-frame">' +
+    '<input id="dt-title" class="frame-title" value="' + esc(item.title) + '" placeholder="技巧名称">' +
+    '<textarea id="dt-content" placeholder="记下这个技巧的要点、示例和自己的心得…">' + esc(item.content || '') + '</textarea>' +
     '</div>' +
     '<p class="detail-meta">更新于 ' + fmtDate(item.updatedAt) + ' · 保存后自动同步到你的 GitHub 仓库</p>' +
     '</div></div>';
@@ -985,6 +1029,21 @@ function openWordModal() {
   });
 }
 
+function openTipModal() {
+  openFormModal('新增写作技巧',
+    fieldText('title', '技巧名称', '', '例如：三幕式结构 / 悬念钩子') +
+    fieldTextarea('content', '要点（也可以保存后点进去补充）', '', '记下这个技巧的要点、示例和心得…', 5),
+  async fd => {
+    if (!fd.title.trim()) { toast('请填写技巧名称', true); return; }
+    Store.tips.push({
+      id: Store.uid(), title: fd.title.trim(),
+      content: fd.content, createdAt: Date.now(), updatedAt: Date.now()
+    });
+    closeModal(); renderShell();
+    if (await guard(() => Store.saveMeta())) toast('已保存到 GitHub ✓');
+  });
+}
+
 function openNovelModal(id) {
   const item = id ? Store.novelById(id) : null;
   openFormModal(item ? '编辑小说' : '新建小说',
@@ -1032,7 +1091,7 @@ document.addEventListener('click', async e => {
   switch (act) {
     case 'tab':
       state.tab = el.dataset.tab;
-      Object.assign(state, { writeSec: null, novelId: null, chapterId: null, inspCat: null, inspId: null, fragId: null, wordId: null, graphId: null, gLinkMode: false, gLinkFrom: null, photoPage: 1, dirty: false });
+      Object.assign(state, { writeSec: null, novelId: null, chapterId: null, inspCat: null, inspId: null, fragId: null, wordId: null, tipId: null, graphId: null, gLinkMode: false, gLinkFrom: null, photoPage: 1, dirty: false });
       renderShell(); break;
 
     case 'fab-add':
@@ -1044,6 +1103,7 @@ document.addEventListener('click', async e => {
         else if (state.writeSec === 'words') openWordModal();
         else if (state.writeSec === 'frags') openFragModal();
         else if (state.writeSec === 'novels') openNovelModal();
+        else if (state.writeSec === 'tips') openTipModal();
       }
       break;
 
@@ -1212,6 +1272,23 @@ document.addEventListener('click', async e => {
       break;
     }
 
+    /* 写作技巧 */
+    case 'open-tip': state.tipId = id; state.dirty = false; renderShell(); break;
+    case 'back-tips':
+      if (state.dirty && !(await confirmLeave())) return;
+      state.tipId = null; state.dirty = false; renderShell(); break;
+    case 'save-tip': await saveTip(); break;
+    case 'del-tip': {
+      const it = Store.tips.find(x => x.id === id);
+      if (it && await confirmDelete('技巧笔记「' + it.title + '」')) {
+        Store.tips = Store.tips.filter(x => x.id !== id);
+        if (state.tipId === id) state.tipId = null;
+        state.dirty = false; renderShell();
+        if (await guard(() => Store.saveMeta())) toast('已删除 ✓');
+      }
+      break;
+    }
+
     /* 照片墙 */
     case 'photo-page': {
       const pg = parseInt(el.dataset.page, 10);
@@ -1237,7 +1314,7 @@ document.addEventListener('click', async e => {
     case 'logout':
       if (await confirmDialog({ icon: '🚪', title: '退出登录', message: '本机保存的 Token 将被清除，下次登录需重新输入。', okText: '退出登录', okWarn: true })) {
         localStorage.removeItem(LS.user); localStorage.removeItem(LS.repo); localStorage.removeItem(LS.token);
-        Object.assign(state, { tab: 'inspiration', writeSec: null, novelId: null, chapterId: null, inspCat: null, inspId: null, fragId: null, wordId: null, graphId: null, gLinkMode: false, gLinkFrom: null, photoPage: 1, dirty: false });
+        Object.assign(state, { tab: 'inspiration', writeSec: null, novelId: null, chapterId: null, inspCat: null, inspId: null, fragId: null, wordId: null, tipId: null, graphId: null, gLinkMode: false, gLinkFrom: null, photoPage: 1, dirty: false });
         renderLogin();
       }
       break;
@@ -1282,6 +1359,23 @@ async function saveFrag() {
 
 async function saveWord() {
   const item = Store.words.find(x => x.id === state.wordId);
+  if (!item) return;
+  const t = document.getElementById('dt-title'), ct = document.getElementById('dt-content');
+  if (t && t.value.trim()) item.title = t.value.trim();
+  if (ct) item.content = ct.value;
+  item.updatedAt = Date.now();
+  state.dirty = false;
+  const ok = await guard(() => Store.saveMeta());
+  const btn = document.querySelector('.save-btn');
+  if (btn) {
+    btn.textContent = '保存';
+    if (ok) { btn.classList.add('off'); btn.disabled = true; }
+  }
+  toast(ok ? '已保存到 GitHub ✓' : '同步失败，请重试', !ok);
+}
+
+async function saveTip() {
+  const item = Store.tips.find(x => x.id === state.tipId);
   if (!item) return;
   const t = document.getElementById('dt-title'), ct = document.getElementById('dt-content');
   if (t && t.value.trim()) item.title = t.value.trim();
