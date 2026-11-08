@@ -489,6 +489,14 @@ input, textarea, select, button { font-family: inherit; color: inherit; }
   display: flex; align-items: center; gap: 5px;
 }
 .pv-del:active { background: rgba(255, 90, 80, .15); }
+.pv-btns { display: flex; gap: 8px; flex-shrink: 0; }
+.pv-tag {
+  border: 1.5px solid rgba(255, 255, 255, .35); border-radius: 10px;
+  background: none; color: #fff;
+  font-size: 13px; padding: 8px 14px; cursor: pointer;
+  display: flex; align-items: center; gap: 5px;
+}
+.pv-tag:active { background: rgba(255, 255, 255, .12); }
 
 .del-btn {
   margin-top: 18px;

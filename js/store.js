@@ -117,15 +117,13 @@ const Store = {
   graphById(id) { return this.graphs.find(x => x.id === id) || null; },
 
   /** 上传照片（dataUrl 为 canvas 导出的 DataURL），先传图片文件再写元数据 */
-  async uploadPhoto(name, dataUrl, assoc) {
+  async uploadPhoto(name, dataUrl, tag) {
     const id = this.uid();
     const path = DATA_DIR + '/photos/' + id + '.jpg';
     const sha = await this.gh.putFileB64(path, dataUrl.split(',')[1]);
     const photo = {
       id, name: name || '未命名', sha,
-      targetType: (assoc && assoc.targetType) || null,
-      targetId: (assoc && assoc.targetId) || null,
-      targetTitle: (assoc && assoc.targetTitle) || '',
+      tag: (tag || '').trim(),
       createdAt: Date.now()
     };
     this.photos.unshift(photo);

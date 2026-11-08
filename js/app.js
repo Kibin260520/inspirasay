@@ -780,7 +780,7 @@ function pagePhotos() {
   const pageItems = list.slice(start, start + PHOTOS_PER_PAGE);
 
   const cells = pageItems.map(p => {
-    const tag = p.targetTitle ? '<span class="ph-tag">' + esc(p.targetTitle) + '</span>' : '';
+    const tag = p.tag ? '<span class="ph-tag">' + esc(p.tag) + '</span>' : '';
     return '<div class="ph-cell" data-act="open-photo" data-id="' + p.id + '">' +
       phImgTag(p) + tag + '</div>';
   }).join('');
@@ -822,8 +822,11 @@ function openPhotoViewer(p) {
     '<div class="pv-body">' + phImgTag(p) + '</div>' +
     '<div class="pv-bar">' +
     '<div class="pv-info"><b>' + esc(p.name) + '</b>' +
-    '<span>' + (p.targetTitle ? '关联：' + esc(p.targetTitle) + ' · ' : '') + fmtDate(p.createdAt) + '</span></div>' +
+    '<span>' + (p.tag ? '标签：' + esc(p.tag) + ' · ' : '') + fmtDate(p.createdAt) + '</span></div>' +
+    '<div class="pv-btns">' +
+    '<button class="pv-tag" data-act="edit-photo-tag" data-id="' + p.id + '">' + IC.edit + ' 标签</button>' +
     '<button class="pv-del" data-act="del-photo" data-id="' + p.id + '">' + IC.trash + ' 删除</button>' +
+    '</div>' +
     '</div></div>';
 }
 
@@ -852,34 +855,21 @@ function resizeImage(file, maxDim, quality) {
 
 /** 新增照片弹窗 */
 function openPhotoModal() {
-  const targets = [{ v: '', t: '不关联任何条目' }]
-    .concat(Store.inspirations.map(x => ({ v: 'insp:' + x.id, t: '灵感：' + x.title })))
-    .concat(Store.fragments.map(x => ({ v: 'frag:' + x.id, t: '片段：' + x.title })));
   openFormModal('添加照片',
     '<input type="file" accept="image/*" id="ph-file" style="display:none">' +
     '<button type="button" class="ph-pick" id="ph-pick-btn">＋ 添加照片</button>' +
-    '<label class="f" style="margin-top:14px"><span>关联条目（可选）</span><select name="target">' +
-    targets.map(t => '<option value="' + t.v + '">' + esc(t.t) + '</option>').join('') +
-    '</select></label>',
+    fieldText('tag', '照片标签（可选，之后也能改）', '', '例如：人物参考 · 场景灵感 · 封面草稿'),
     async fd => {
       const input = document.getElementById('ph-file');
       const file = input && input.files && input.files[0];
       if (!file) { toast('请先点「＋ 添加照片」选择一张图片', true); return; }
       toast('正在压缩并上传…');
       const dataUrl = await resizeImage(file, 1280, 0.85);
-      const tv = fd.target || '';
-      const assoc = { targetType: null, targetId: null, targetTitle: '' };
-      if (tv.indexOf('insp:') === 0) {
-        const it = Store.inspirations.find(x => x.id === tv.slice(5));
-        if (it) { assoc.targetType = 'inspiration'; assoc.targetId = it.id; assoc.targetTitle = it.title; }
-      } else if (tv.indexOf('frag:') === 0) {
-        const it = Store.fragments.find(x => x.id === tv.slice(5));
-        if (it) { assoc.targetType = 'fragment'; assoc.targetId = it.id; assoc.targetTitle = it.title; }
-      }
+      const tag = (fd.tag || '').trim();
       // 上传自动重试 2 次（弱网上传偶发失败）
       let lastErr = null;
       for (let i = 0; i < 3; i++) {
-        try { await Store.uploadPhoto(file.name.replace(/\.[^.]+$/, ''), dataUrl, assoc); lastErr = null; break; }
+        try { await Store.uploadPhoto(file.name.replace(/\.[^.]+$/, ''), dataUrl, tag); lastErr = null; break; }
         catch (e) { lastErr = e; }
       }
       if (lastErr) throw lastErr;
@@ -1269,6 +1259,19 @@ document.addEventListener('click', async e => {
         state.dirty = false; renderShell();
         if (await guard(() => Store.saveMeta())) toast('已删除 ✓');
       }
+      break;
+    }
+
+    case 'edit-photo-tag': {
+      const p = Store.photoById(id);
+      if (!p) break;
+      openFormModal('修改照片标签',
+        fieldText('tag', '标签名称（留空即清除标签）', p.tag || '', '例如：人物参考 · 场景灵感 · 封面草稿'),
+      async fd => {
+        p.tag = (fd.tag || '').trim();
+        closeModal(); renderShell();
+        if (await guard(() => Store.saveMeta())) toast('标签已更新 ✓');
+      });
       break;
     }
 
