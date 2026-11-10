@@ -894,8 +894,8 @@ function pageMore() {
   const novelName = localStorage.getItem(LS.novel) || '';
   return '<div class="page-head"><span class="page-sub">当前创作 · 账号信息</span></div>' +
     '<div class="card novel-card">' +
-    '<div class="nc-label">📖 当前正在添加设定</div>' +
-    '<div class="nc-name">' + esc(novelName || '尚未设定小说名') + '</div>' +
+    '<div class="nc-label">当前正在添加设定的小说：</div>' +
+    '<div class="nc-name">《' + esc(novelName || '尚未设定') + '》</div>' +
     (novelName ? '' : '<div class="nc-hint">下次登录时填写「正在写的小说」即可设定</div>') +
     '</div>' +
     '<div class="card account-card">' +

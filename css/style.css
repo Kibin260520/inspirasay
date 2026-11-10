@@ -561,14 +561,18 @@ input, textarea, select, button { font-family: inherit; color: inherit; }
 /* ---------- 更多页 ---------- */
 .novel-card {
   padding: 20px 18px;
-  background: linear-gradient(135deg, #6c5ce7 0%, #8e7cf3 60%, #a29bfe 100%);
-  border: none;
-  box-shadow: 0 6px 18px rgba(108, 92, 231, .35);
-  color: #fff;
+  background: linear-gradient(135deg, #e8f8ee 0%, #d3f2e0 100%);
+  border: 1px solid #bfe8cf;
+  box-shadow: 0 4px 14px rgba(0, 184, 148, .15);
+  color: #1f7a54;
 }
-.nc-label { font-size: 12px; opacity: .85; letter-spacing: .5px; }
-.nc-name { font-size: 20px; font-weight: 700; margin-top: 6px; line-height: 1.4; word-break: break-all; }
-.nc-hint { font-size: 11px; opacity: .75; margin-top: 8px; }
+.nc-label { font-size: 12px; opacity: .75; letter-spacing: .5px; }
+.nc-name {
+  font-size: 21px; font-weight: 700; margin-top: 6px; line-height: 1.5;
+  font-family: "KaiTi", "STKaiti", "楷体", serif;
+  color: #145c3f; word-break: break-all;
+}
+.nc-hint { font-size: 11px; opacity: .65; margin-top: 8px; }
 .account-card { margin-top: 12px; padding-bottom: 14px; }
 .acc-row {
   display: flex; justify-content: space-between; align-items: center;
