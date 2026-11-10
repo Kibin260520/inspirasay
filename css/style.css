@@ -570,7 +570,7 @@ input, textarea, select, button { font-family: inherit; color: inherit; }
 .nc-name {
   font-size: 21px; font-weight: 700; margin-top: 6px; line-height: 1.5;
   font-family: "KaiTi", "STKaiti", "楷体", serif;
-  color: #145c3f; word-break: break-all;
+  color: #145c3f; word-break: break-all; text-align: right;
 }
 .nc-hint { font-size: 11px; opacity: .65; margin-top: 8px; }
 .account-card { margin-top: 12px; padding-bottom: 14px; }
