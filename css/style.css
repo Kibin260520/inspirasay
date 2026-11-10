@@ -280,7 +280,8 @@ input, textarea, select, button { font-family: inherit; color: inherit; }
 .ri3 { background: #e17055; }
 .ri4 { background: #00cec9; }
 .ri5 { background: #0984e3; }
-.ri6 { background: #636e72; }
+.ri6 { background: #f39c12; }
+.ri7 { background: #636e72; }
 .ri-frag { background: #fdcb6e; color: #6b4e00 !important; }
 .ri-word { background: #00b8a9; color: #fff !important; font-size: 17px; }
 .ri-book { background: #0984e3; font-size: 19px; }
