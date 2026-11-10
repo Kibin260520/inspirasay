@@ -29,7 +29,17 @@ const Store = {
   },
 
   async loadAll() {
-    const meta = await this.gh.getJSON(DATA_DIR + '/meta.json');
+    let meta = await this.gh.getJSON(DATA_DIR + '/meta.json');
+    /* 空数据仓库首次登录：自动初始化清单，无需手动创建任何文件 */
+    if (!meta.data) {
+      await this.gh.putJSON(
+        DATA_DIR + '/meta.json',
+        { inspirations: [], fragments: [], words: [], tips: [], photos: [] },
+        null,
+        '小灵感说: 初始化数据仓库'
+      );
+      meta = await this.gh.getJSON(DATA_DIR + '/meta.json');
+    }
     this.metaSha = meta.sha;
     this.inspirations = (meta.data && meta.data.inspirations) || [];
     this.fragments = (meta.data && meta.data.fragments) || [];
