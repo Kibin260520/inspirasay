@@ -187,8 +187,8 @@ function renderLogin(msg) {
 
 function showLoading(text) {
   $app.innerHTML = '<div class="loading"><div class="spinner"></div><p id="load-text">' + esc(text) + '</p>' +
-    '<div class="load-bar"><div class="load-fill" id="load-fill" style="width:0%"></div></div>' +
-    '<span class="load-pct" id="load-pct">0%</span></div>';
+    '<div class="load-row"><div class="load-bar"><div class="load-fill" id="load-fill" style="width:0%"></div></div>' +
+    '<span class="load-pct" id="load-pct">0%</span></div></div>';
 }
 
 /** 更新登录/加载进度条（0-100） */

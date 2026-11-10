@@ -651,6 +651,7 @@ input, textarea, select, button { font-family: inherit; color: inherit; }
   color: var(--text-2); font-size: 14px;
 }
 .loading p { font-size: 14px; }
+.load-row { display: flex; align-items: center; gap: 10px; }
 .load-bar {
   width: 190px; height: 7px;
   background: #e3e4ec; border-radius: 4px; overflow: hidden;
@@ -661,7 +662,7 @@ input, textarea, select, button { font-family: inherit; color: inherit; }
   border-radius: 4px;
   transition: width .3s ease;
 }
-.load-pct { font-size: 12px; color: var(--text-2); font-variant-numeric: tabular-nums; }
+.load-pct { font-size: 12px; color: var(--text-2); font-variant-numeric: tabular-nums; min-width: 34px; }
 /* 登录表单留空提醒 */
 .input-err {
   border-color: var(--danger) !important;
