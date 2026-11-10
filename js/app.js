@@ -120,6 +120,7 @@ async function boot() {
   if (r === 'inspirasay') { r = 'inspirasay-data'; localStorage.setItem(LS.repo, r); }
   if (u && r && t) {
     showLoading('正在连接 GitHub…');
+    setLoadingProgress(5);
     try { await enterApp(u, r, t); return; }
     catch (e) { renderLogin('自动登录失败：' + e.message); return; }
   }
@@ -128,11 +129,12 @@ async function boot() {
 
 async function enterApp(user, repo, token) {
   await Store.init(user, repo, token);
-  showLoading('正在同步数据…');
+  setLoadingProgress(20, '正在同步数据…');
   await Store.loadAll();
   if (Store.metaSha === null) {
     throw new Error('仓库「' + repo + '」中未找到应用数据，请登录数据仓库（如 inspirasay-data）');
   }
+  setLoadingProgress(100);
   Object.assign(state, { tab: 'inspiration', writeSec: null, novelId: null, chapterId: null, inspCat: null, inspId: null, fragId: null, wordId: null, tipId: null, graphId: null, gLinkMode: false, gLinkFrom: null, photoPage: 1, dirty: false });
   renderShell();
 }
@@ -148,7 +150,7 @@ function renderLogin(msg) {
     '<label><span>GitHub 用户名</span><input name="user" required autocomplete="username" value="' + esc(localStorage.getItem(LS.user) || '') + '"></label>' +
     '<label><span>数据仓库名</span><input name="repo" required placeholder="私有数据仓库，如：inspirasay-data" value="' + esc(localStorage.getItem(LS.repo) || '') + '"></label>' +
     '<label><span>Access Token</span><input name="token" type="password" required placeholder="需授权该数据仓库读写" autocomplete="off"></label>' +
-    '<label><span>正在写的小说</span><input name="novel" placeholder="小说名，可留空 · 如：星海拾遗" value="' + esc(localStorage.getItem(LS.novel) || '') + '"></label>' +
+    '<label><span>准备设定的小说</span><input name="novel" placeholder="必填 · 如：星海拾遗" autocomplete="off"></label>' +
     '<button class="primary-btn" type="submit">登 录</button>' +
     '</form>' +
     '<p class="tip">设定内容存放在你的<b>私有仓库</b>中，任何人无法查看或 fork。Token 仅保存在本机浏览器，不会上传到任何第三方。</p>' +
@@ -158,21 +160,49 @@ function renderLogin(msg) {
     ev.preventDefault();
     const fd = Object.fromEntries(new FormData(ev.target));
     const user = fd.user.trim(), repo = fd.repo.trim(), token = fd.token.trim();
+    const novelInput = ev.target.elements.novel;
+    const novel = (fd.novel || '').trim();
+    if (!novel) {
+      novelInput.classList.add('input-err');
+      novelInput.focus();
+      toast('请填写「准备设定的小说」', true);
+      return;
+    }
+    novelInput.classList.remove('input-err');
     showLoading('正在验证仓库…');
+    setLoadingProgress(10);
     try {
       localStorage.setItem(LS.user, user);
       localStorage.setItem(LS.repo, repo);
       localStorage.setItem(LS.token, token);
-      localStorage.setItem(LS.novel, (fd.novel || '').trim());
+      localStorage.setItem(LS.novel, novel);
       await enterApp(user, repo, token);
     } catch (e) {
       renderLogin('登录失败：' + e.message);
     }
   });
+  /* 输入时即时去掉红框 */
+  document.getElementById('login-form').elements.novel.addEventListener('input', ev => ev.target.classList.remove('input-err'));
 }
 
 function showLoading(text) {
-  $app.innerHTML = '<div class="loading"><div class="spinner"></div><p>' + esc(text) + '</p></div>';
+  $app.innerHTML = '<div class="loading"><div class="spinner"></div><p id="load-text">' + esc(text) + '</p>' +
+    '<div class="load-bar"><div class="load-fill" id="load-fill" style="width:0%"></div></div>' +
+    '<span class="load-pct" id="load-pct">0%</span></div>';
+}
+
+/** 更新登录/加载进度条（0-100） */
+function setLoadingProgress(pct, text) {
+  const fill = document.getElementById('load-fill');
+  const tag = document.getElementById('load-pct');
+  if (!fill) return;
+  const p = Math.max(0, Math.min(100, Math.round(pct)));
+  fill.style.width = p + '%';
+  if (tag) tag.textContent = p + '%';
+  if (text) {
+    const t = document.getElementById('load-text');
+    if (t) t.textContent = text;
+  }
 }
 
 /* ---------- 主框架 ---------- */
@@ -896,7 +926,7 @@ function pageMore() {
     '<div class="card novel-card">' +
     '<div class="nc-label">当前正在添加设定的小说：</div>' +
     '<div class="nc-name">《' + esc(novelName || '尚未设定') + '》</div>' +
-    (novelName ? '' : '<div class="nc-hint">下次登录时填写「正在写的小说」即可设定</div>') +
+    (novelName ? '' : '<div class="nc-hint">下次登录时填写「准备设定的小说」即可设定</div>') +
     '</div>' +
     '<div class="card account-card">' +
     '<div class="acc-row"><span>账号</span><b>' + esc(Store.account.user) + '</b></div>' +

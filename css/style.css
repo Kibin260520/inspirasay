@@ -650,6 +650,23 @@ input, textarea, select, button { font-family: inherit; color: inherit; }
   display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 16px;
   color: var(--text-2); font-size: 14px;
 }
+.loading p { font-size: 14px; }
+.load-bar {
+  width: 190px; height: 7px;
+  background: #e3e4ec; border-radius: 4px; overflow: hidden;
+}
+.load-fill {
+  height: 100%; width: 0%;
+  background: linear-gradient(90deg, #6c5ce7, #8e7cf3);
+  border-radius: 4px;
+  transition: width .3s ease;
+}
+.load-pct { font-size: 12px; color: var(--text-2); font-variant-numeric: tabular-nums; }
+/* 登录表单留空提醒 */
+.input-err {
+  border-color: var(--danger) !important;
+  background: #fff5f4 !important;
+}
 .spinner {
   width: 34px; height: 34px;
   border: 3px solid var(--line); border-top-color: var(--primary);

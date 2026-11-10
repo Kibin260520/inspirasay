@@ -30,6 +30,7 @@ const Store = {
 
   async loadAll() {
     let meta = await this.gh.getJSON(DATA_DIR + '/meta.json');
+    if (window.setLoadingProgress) setLoadingProgress(30);
     /* 空数据仓库首次登录：自动初始化清单，无需手动创建任何文件 */
     if (!meta.data) {
       await this.gh.putJSON(
@@ -38,6 +39,7 @@ const Store = {
         null,
         '小灵感说: 初始化数据仓库'
       );
+      if (window.setLoadingProgress) setLoadingProgress(40);
       meta = await this.gh.getJSON(DATA_DIR + '/meta.json');
     }
     this.metaSha = meta.sha;
@@ -50,9 +52,12 @@ const Store = {
     this.novels = [];
     this.novelShas = {};
     const files = await this.gh.listDir(DATA_DIR + '/novels');
-    for (const f of files) {
+    if (window.setLoadingProgress) setLoadingProgress(45);
+    for (let i = 0; i < files.length; i++) {
+      const f = files[i];
       if (!f.name.endsWith('.json')) continue;
       const one = await this.gh.getJSON(DATA_DIR + '/novels/' + f.name);
+      if (window.setLoadingProgress) setLoadingProgress(45 + 25 * (i + 1) / Math.max(1, files.length));
       if (one.data) {
         this.novelShas[one.data.id] = one.sha;
         this.novels.push(one.data);
@@ -63,9 +68,12 @@ const Store = {
     this.graphs = [];
     this.graphShas = {};
     const gfiles = await this.gh.listDir(DATA_DIR + '/graphs');
-    for (const f of gfiles) {
+    if (window.setLoadingProgress) setLoadingProgress(75);
+    for (let i = 0; i < gfiles.length; i++) {
+      const f = gfiles[i];
       if (!f.name.endsWith('.json')) continue;
       const one = await this.gh.getJSON(DATA_DIR + '/graphs/' + f.name);
+      if (window.setLoadingProgress) setLoadingProgress(75 + 20 * (i + 1) / Math.max(1, gfiles.length));
       if (one.data) {
         this.graphShas[one.data.id] = one.sha;
         this.graphs.push(one.data);
