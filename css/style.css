@@ -559,10 +559,16 @@ input, textarea, select, button { font-family: inherit; color: inherit; }
 .f input:focus, .f select:focus, .f textarea:focus { border-color: var(--primary); background: #fff; }
 
 /* ---------- 更多页 ---------- */
-.more-card { text-align: center; padding: 30px 20px; }
-.more-icon { font-size: 40px; }
-.more-card h3 { margin: 10px 0 8px; }
-.more-card p { font-size: 13px; color: var(--text-2); line-height: 1.8; }
+.novel-card {
+  padding: 20px 18px;
+  background: linear-gradient(135deg, #6c5ce7 0%, #8e7cf3 60%, #a29bfe 100%);
+  border: none;
+  box-shadow: 0 6px 18px rgba(108, 92, 231, .35);
+  color: #fff;
+}
+.nc-label { font-size: 12px; opacity: .85; letter-spacing: .5px; }
+.nc-name { font-size: 20px; font-weight: 700; margin-top: 6px; line-height: 1.4; word-break: break-all; }
+.nc-hint { font-size: 11px; opacity: .75; margin-top: 8px; }
 .account-card { margin-top: 12px; padding-bottom: 14px; }
 .acc-row {
   display: flex; justify-content: space-between; align-items: center;

@@ -1,7 +1,7 @@
 /* 小灵感说 — 界面与交互 */
 'use strict';
 
-const LS = { user: 'xlg_user', repo: 'xlg_repo', token: 'xlg_token' };
+const LS = { user: 'xlg_user', repo: 'xlg_repo', token: 'xlg_token', novel: 'xlg_novel' };
 const CATS = ['世界观', '人物', '地点', '势力', '情节', '物品', '技能', '其他'];
 const GRAPH_TYPES = ['人物关系', '势力分布', '大纲脉络', '其他'];
 const NODE_COLORS = [
@@ -148,6 +148,7 @@ function renderLogin(msg) {
     '<label><span>GitHub 用户名</span><input name="user" required autocomplete="username" value="' + esc(localStorage.getItem(LS.user) || '') + '"></label>' +
     '<label><span>数据仓库名</span><input name="repo" required placeholder="私有数据仓库，如：inspirasay-data" value="' + esc(localStorage.getItem(LS.repo) || '') + '"></label>' +
     '<label><span>Access Token</span><input name="token" type="password" required placeholder="需授权该数据仓库读写" autocomplete="off"></label>' +
+    '<label><span>正在写的小说</span><input name="novel" placeholder="小说名，可留空 · 如：星海拾遗" value="' + esc(localStorage.getItem(LS.novel) || '') + '"></label>' +
     '<button class="primary-btn" type="submit">登 录</button>' +
     '</form>' +
     '<p class="tip">设定内容存放在你的<b>私有仓库</b>中，任何人无法查看或 fork。Token 仅保存在本机浏览器，不会上传到任何第三方。</p>' +
@@ -162,6 +163,7 @@ function renderLogin(msg) {
       localStorage.setItem(LS.user, user);
       localStorage.setItem(LS.repo, repo);
       localStorage.setItem(LS.token, token);
+      localStorage.setItem(LS.novel, (fd.novel || '').trim());
       await enterApp(user, repo, token);
     } catch (e) {
       renderLogin('登录失败：' + e.message);
@@ -889,9 +891,13 @@ function openPhotoModal() {
 
 /* ---------- 更多页 ---------- */
 function pageMore() {
-  return '<div class="page-head"><span class="page-sub">后续功能扩展区</span></div>' +
-    '<div class="card more-card"><div class="more-icon">🚧</div><h3>更多功能建设中</h3>' +
-    '<p>角色关系图谱、灵感看板、导出成稿等功能将在后续版本上线，敬请期待。</p></div>' +
+  const novelName = localStorage.getItem(LS.novel) || '';
+  return '<div class="page-head"><span class="page-sub">当前创作 · 账号信息</span></div>' +
+    '<div class="card novel-card">' +
+    '<div class="nc-label">📖 当前正在添加设定</div>' +
+    '<div class="nc-name">' + esc(novelName || '尚未设定小说名') + '</div>' +
+    (novelName ? '' : '<div class="nc-hint">下次登录时填写「正在写的小说」即可设定</div>') +
+    '</div>' +
     '<div class="card account-card">' +
     '<div class="acc-row"><span>账号</span><b>' + esc(Store.account.user) + '</b></div>' +
     '<div class="acc-row"><span>仓库</span><b>' + esc(Store.account.repo) + '</b></div>' +
